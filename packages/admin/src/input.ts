@@ -75,6 +75,7 @@ function hydrateRaisedLimit(
 export function hydrateLimitOverride(raw: {
   recordings: unknown;
   minutes: unknown;
+  agentMinutes: unknown;
 }): Hydrated<LimitOverride> {
   const recordings = hydrateRaisedLimit(
     raw.recordings,
@@ -90,11 +91,19 @@ export function hydrateLimitOverride(raw: {
     LIMIT_OVERRIDE_MAX.minutes,
   );
   if (!minutes.ok) return minutes;
+  const agentMinutes = hydrateRaisedLimit(
+    raw.agentMinutes,
+    "Agent minutes",
+    FREE_TIER.agentMinutesPerPerson,
+    LIMIT_OVERRIDE_MAX.agentMinutes,
+  );
+  if (!agentMinutes.ok) return agentMinutes;
   return {
     ok: true,
     value: {
       recordings: recordings.value,
       maxRecordingMs: minutes.value === null ? null : minutes.value * 60_000,
+      agentMinutes: agentMinutes.value,
     },
   };
 }

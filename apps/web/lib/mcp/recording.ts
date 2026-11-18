@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import type { DemoColorScheme } from "../swarm-demo";
 import { agentAllowanceLeft, startOfMonthUtc } from "@captureflow/quota";
 import type { AppWebBindings } from "../cf-env";
 import { issueDeviceToken } from "../device-tokens";
@@ -138,10 +139,14 @@ async function callRecorder<T>(
   return json as T;
 }
 
-async function allowanceLeft(db: D1Database, workspaceId: string) {
+async function allowanceLeft(
+  db: D1Database,
+  workspaceId: string,
+  userId: string,
+) {
   const now = Date.now();
   const [entitlement, usage] = await Promise.all([
-    getWorkspaceEntitlement(workspaceId),
+    getWorkspaceEntitlement(workspaceId, userId),
     getAgentUsage(db, workspaceId, startOfMonthUtc(now), now),
   ]);
   const left = entitlement
@@ -189,7 +194,11 @@ async function prepareAgentRecording(
       "running",
     );
   }
-  const { entitlement, left } = await allowanceLeft(db, workspaceId);
+  const { entitlement, left } = await allowanceLeft(
+    db,
+    workspaceId,
+    user.userId,
+  );
   if (left.agentMs !== null && left.agentMs < 60_000) {
     throw new LibraryError(
       "This workspace has used its agent recording minutes for this month. They reset on the 1st.",
@@ -283,7 +292,7 @@ export async function startSwarmDemo(
   db: D1Database,
   env: RecorderEnv,
   user: McpUser,
-  url: string,
+  { url, colorScheme }: { url: string; colorScheme: DemoColorScheme },
   background: (task: Promise<unknown>) => void,
 ): Promise<{ recording_id: string; url: string }> {
   const title = `${new URL(url).host} rebuilt by agents`;
@@ -314,6 +323,7 @@ export async function startSwarmDemo(
     background(
       callRecorder(env, id, "POST", "demo", {
         url,
+        colorScheme,
         start: {
           ...start,
           upload: { ...start.upload, created: made.response },
@@ -416,7 +426,9 @@ export async function narrate(
   const workspaceId =
     row.workspaceId ??
     (row.slug ? (await getRecording(row.slug))?.workspaceId : null);
-  const allowance = workspaceId ? await allowanceLeft(db, workspaceId) : null;
+  const allowance = workspaceId
+    ? await allowanceLeft(db, workspaceId, user.userId)
+    : null;
   if (!allowance?.entitlement?.ai) {
     throw new LibraryError(
       "Voiceover is a Pro feature. The recording keeps going without it.",

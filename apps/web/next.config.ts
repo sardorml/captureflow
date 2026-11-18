@@ -69,17 +69,17 @@ const nextConfig: NextConfig = {
       },
       {
         /*
-         * The extension frames the player on GitHub from one of its own pages,
-         * and frame-ancestors checks every ancestor, so both the extension and
-         * GitHub have to be allowed.
+         * Any site may frame the player: the share dialog hands out an iframe
+         * snippet and X frames it for link previews. The wildcard covers web
+         * origins only, so the extension, which frames it on GitHub from one
+         * of its own pages, is named as well.
          */
         source: "/embed/:path*",
         headers: [
           ...transport,
           {
             key: "Content-Security-Policy",
-            value:
-              "frame-ancestors 'self' chrome-extension: https://github.com",
+            value: "frame-ancestors * chrome-extension:",
           },
         ],
       },

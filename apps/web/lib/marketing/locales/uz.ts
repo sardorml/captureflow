@@ -584,6 +584,9 @@ const messages: Messages = {
     previewNote:
       "Agentlar qayta quradigan sahifa shu. To‘g‘ri ko‘rinsa, demo yarating.",
     change: "Manzilni o‘zgartirish",
+    theme: "Mavzu",
+    light: "Yorugʻ",
+    dark: "Qorongʻi",
     note: "Bepul yaratish uchun tizimga kiring. Har bir demo kutubxonangizga tushadi.",
     noteSignedIn: "Bepul yarating. Har bir demo kutubxonangizga tushadi.",
     howHeading: "Bu qanday ishlaydi",

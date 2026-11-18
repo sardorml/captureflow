@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Globe } from "lucide-react";
+import { ArrowUp, Globe, Moon, Sun } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FadeInImage } from "@/components/ui/fade-in-image";
@@ -19,7 +19,7 @@ import {
   startSwarmDemoAction,
   type SwarmDemoErrorCode,
 } from "@/app/swarm-demo/actions";
-import type { SitePreview } from "@/lib/swarm-demo";
+import type { DemoColorScheme, SitePreview } from "@/lib/swarm-demo";
 import { track } from "@/lib/marketing/track";
 import { MarketingSection, SectionHeading } from "./_shared";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
@@ -181,6 +181,7 @@ function DemoForm() {
   const [url, setUrl] = useState("");
   const [phase, setPhase] = useState<"idle" | "checking" | "starting">("idle");
   const [site, setSite] = useState<SitePreview | null>(null);
+  const [scheme, setScheme] = useState<DemoColorScheme>("light");
   const [error, setError] = useState<SwarmDemoErrorCode | null>(null);
   const resumed = useRef(false);
   const signedIn = useSignedIn();
@@ -191,6 +192,9 @@ function DemoForm() {
    * server actions are gone. One reload with the address kept fetches the
    * new page; a second failure shows the error instead of spinning.
    */
+  const resumeHref = (address: string) =>
+    `${lh("/swarm-demo")}?url=${encodeURIComponent(address)}&theme=${scheme}&go=1`;
+
   function recover(address: string) {
     if (readReloaded()) {
       writeReloaded(false);
@@ -199,9 +203,7 @@ function DemoForm() {
       return;
     }
     writeReloaded(true);
-    window.location.assign(
-      `${lh("/swarm-demo")}?url=${encodeURIComponent(address)}&go=1`,
-    );
+    window.location.assign(resumeHref(address));
   }
 
   async function check(address: string) {
@@ -224,12 +226,11 @@ function DemoForm() {
     setPhase("starting");
     setError(null);
     track("swarm_demo_requested");
-    const result = await settle(startSwarmDemoAction(address));
+    const result = await settle(startSwarmDemoAction(address, scheme));
     if (!result) return recover(address);
     writeReloaded(false);
     if (result.kind === "login") {
-      const next = `${lh("/swarm-demo")}?url=${encodeURIComponent(address)}&go=1`;
-      router.push(`/login?next=${encodeURIComponent(next)}`);
+      router.push(`/login?next=${encodeURIComponent(resumeHref(address))}`);
       return;
     }
     if (result.kind === "started") {
@@ -248,6 +249,7 @@ function DemoForm() {
     const params = new URLSearchParams(window.location.search);
     const address = params.get("url") ?? "";
     if (address) setUrl(address);
+    if (params.get("theme") === "dark") setScheme("dark");
     if (params.get("go") !== "1") return;
     router.replace(lh("/swarm-demo"));
     if (address) void check(address);
@@ -311,6 +313,8 @@ function DemoForm() {
       {site && (
         <SitePreviewCard
           site={site}
+          scheme={scheme}
+          onScheme={setScheme}
           starting={phase === "starting"}
           onStart={() => void start(site.url)}
           onChange={() => {
@@ -330,11 +334,15 @@ function DemoForm() {
 
 function SitePreviewCard({
   site,
+  scheme,
+  onScheme,
   starting,
   onStart,
   onChange,
 }: {
   site: SitePreview;
+  scheme: DemoColorScheme;
+  onScheme: (scheme: DemoColorScheme) => void;
   starting: boolean;
   onStart: () => void;
   onChange: () => void;
@@ -393,6 +401,32 @@ function SitePreviewCard({
         >
           {copy.change}
         </Button>
+        {site.followsTheme && (
+          <div
+            role="radiogroup"
+            aria-label={copy.theme}
+            className="ml-auto flex items-center rounded-full bg-panel-2 p-1"
+          >
+            {(["light", "dark"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={scheme === option}
+                disabled={starting}
+                onClick={() => onScheme(option)}
+                className={`flex h-8 items-center gap-1.5 rounded-full px-3 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${
+                  scheme === option
+                    ? "bg-panel text-fg shadow-sm"
+                    : "text-fg-muted hover:text-fg"
+                }`}
+              >
+                {option === "light" ? <Sun size={15} /> : <Moon size={15} />}
+                {copy[option]}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

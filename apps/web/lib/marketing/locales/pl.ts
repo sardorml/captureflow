@@ -577,6 +577,9 @@ const messages: Messages = {
     previewNote:
       "To jest strona, którą agenci odbudują. Wygeneruj demo, gdy wygląda dobrze.",
     change: "Zmień adres",
+    theme: "Motyw",
+    light: "Jasny",
+    dark: "Ciemny",
     note: "Zaloguj się, aby wygenerować za darmo. Każde demo trafia do twojej biblioteki.",
     noteSignedIn: "Generuj za darmo. Każde demo trafia do twojej biblioteki.",
     howHeading: "Jak to działa",

@@ -580,6 +580,9 @@ const messages: Messages = {
     previewNote:
       "エージェントが再構築するページです。問題なければデモを生成してください。",
     change: "アドレスを変更",
+    theme: "テーマ",
+    light: "ライト",
+    dark: "ダーク",
     note: "サインインすると無料で生成できます。デモはライブラリに保存されます。",
     noteSignedIn: "無料で生成できます。デモはライブラリに保存されます。",
     howHeading: "仕組み",

@@ -589,6 +589,9 @@ const messages: Messages = {
     previewNote:
       "Tämän sivun agentit rakentavat uudelleen. Luo demo, kun se näyttää oikealta.",
     change: "Vaihda osoite",
+    theme: "Teema",
+    light: "Vaalea",
+    dark: "Tumma",
     note: "Kirjaudu sisään luodaksesi demon ilmaiseksi. Jokainen demo ilmestyy kirjastoosi.",
     noteSignedIn: "Luo ilmaiseksi. Jokainen demo ilmestyy kirjastoosi.",
     howHeading: "Näin se toimii",

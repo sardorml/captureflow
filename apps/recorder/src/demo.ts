@@ -1,7 +1,11 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { SessionError, type Session } from "@captureflow/agent-recorder";
+import {
+  SessionError,
+  type ColorScheme,
+  type Session,
+} from "@captureflow/agent-recorder";
 
 const END_CARD = {
   layout: "end_card" as const,
@@ -45,6 +49,7 @@ function resolveMusic(): Promise<string | null> {
 export async function runDemo(
   session: Session,
   url: string,
+  colorScheme?: ColorScheme,
 ): Promise<{ url: string; durationSeconds: number | null }> {
   try {
     const track = await resolveMusic().catch((err) => {
@@ -52,7 +57,12 @@ export async function runDemo(
       return null;
     });
     const startedAt = Date.now();
-    const built = await session.rebuild({ url, music: track, ...DEMO_BUILD });
+    const built = await session.rebuild({
+      url,
+      music: track,
+      colorScheme,
+      ...DEMO_BUILD,
+    });
     const builtAt = Date.now();
     await session.act({ type: "show_slide", slide: END_CARD });
     await session.act({ type: "wait", seconds: END_CARD_SECONDS });

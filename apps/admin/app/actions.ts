@@ -39,6 +39,7 @@ import {
   issueSession,
   loginScopeKeys,
   recordFailure,
+  resetAgentUsage,
   revokeUserAccess,
   setAdminStatus,
   setLimitOverride,
@@ -332,9 +333,10 @@ async function saveLimits(
   const limits = hydrateLimitOverride({
     recordings: formData.get("recordings"),
     minutes: formData.get("minutes"),
+    agentMinutes: formData.get("agentMinutes"),
   });
   if (!limits.ok) return { error: limits.error };
-  const { recordings, maxRecordingMs } = limits.value;
+  const { recordings, maxRecordingMs, agentMinutes } = limits.value;
   await setLimitOverride(db, scope, id, limits.value, actor);
   await writeAudit(db, {
     actor,
@@ -343,7 +345,7 @@ async function saveLimits(
     targetId: id,
     detail: `${recordings ?? "default"} recordings, ${
       maxRecordingMs === null ? "default" : maxRecordingMs / 60_000
-    } minutes each`,
+    } minutes each, ${agentMinutes ?? "default"} agent minutes a month`,
   });
   revalidatePath(`/${scope}s/${id}`);
   return { error: null };
@@ -362,6 +364,32 @@ export async function setUserLimitsAction(
     return { error: "Unknown user." };
   }
   return saveLimits(env.DB, operator.email, "user", userId, formData);
+}
+
+// Starts a workspace's agent recording minutes for the month over; the
+// recordings stay.
+export async function resetAgentUsageAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const operator = await requirePermission("users.write");
+  const env = await getAdminEnv();
+  if (!env?.DB) return { error: NO_DB };
+
+  const id = hydrateWorkspaceId(formData.get("workspaceId"));
+  const workspace = id ? await getAdminWorkspace(env.DB, id) : null;
+  if (!workspace) return { error: "Unknown workspace." };
+  await resetAgentUsage(env.DB, workspace.id, operator.email);
+  await writeAudit(env.DB, {
+    actor: operator.email,
+    action: "workspace.agent.reset",
+    targetType: "workspace",
+    targetId: workspace.id,
+    detail: null,
+  });
+  revalidatePath("/users", "layout");
+  revalidatePath(`/workspaces/${workspace.id}`);
+  return { error: null };
 }
 
 export async function setWorkspaceLimitsAction(

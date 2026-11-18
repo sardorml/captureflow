@@ -28,7 +28,7 @@ import {
   unmountSwarm,
   type SwarmUnit,
 } from "./swarm";
-import { looksLikeWall } from "./wall";
+import { findFullFrame, looksLikeWall } from "./wall";
 
 // Without a url the recording is a presentation: slides and narration on a blank stage.
 export type StartRequest = {
@@ -71,7 +71,10 @@ export type RebuildRequest = {
   screens?: number;
   prompt?: string;
   music?: string | null;
+  colorScheme?: ColorScheme;
 };
+
+export type ColorScheme = "light" | "dark";
 
 // Pages are drawn a little larger than life, so text reads at video size.
 export const DEFAULT_ZOOM = 1.3;
@@ -92,6 +95,7 @@ const REVEAL_MS = 400;
 const QUICK_REVEAL_MS = 80;
 const PROMPT_POSTER_MS = 250;
 const LOAD_MS = 30_000;
+const FULL_FRAME_WAIT_MS = 8_000;
 // A page with fewer units than this is checked for being a block page.
 const WALL_UNITS = 12;
 const OUTLINE_CHARS = 6000;
@@ -223,6 +227,43 @@ export async function startSession(
         .catch(() => false);
       if (!parsed) throw err;
     }
+    await liftFullFrame();
+  }
+
+  /*
+   * A site served from one frame that fills the window is put in the page's
+   * place, since only the page itself is scanned and built. A page with
+   * almost no text of its own gets a few seconds for that frame to appear.
+   */
+  async function liftFullFrame() {
+    const bare = await page
+      .evaluate(() => (document.body?.innerText.trim().length ?? 0) < 200)
+      .catch(() => false);
+    if (!bare) return;
+    const frame = await page
+      .waitForFunction(
+        findFullFrame,
+        { width, height },
+        { timeout: FULL_FRAME_WAIT_MS },
+      )
+      .then((handle) => handle.jsonValue())
+      .catch(() => null);
+    if (!frame) return;
+    if ("src" in frame) {
+      if (await allowUrl(frame.src)) await open(frame.src);
+      return;
+    }
+    await page.evaluate((html) => {
+      document.open();
+      document.write(html);
+      document.close();
+    }, frame.srcdoc);
+    // Written into the open page, it never fires a new load: wait on its own parse.
+    await page
+      .waitForFunction(() => document.readyState === "complete", undefined, {
+        timeout: LOAD_MS,
+      })
+      .catch(() => {});
   }
 
   if (req.url) {
@@ -406,6 +447,10 @@ export async function startSession(
     let thaw = async () => {};
     // Getting the page ready isn't recorded, but on a slow machine it can outlast the idle stop.
     const prepared = rec.offCamera(async () => {
+      // Set before the page loads, so a site that follows the system theme starts in it.
+      if (req.colorScheme) {
+        await page.emulateMedia({ colorScheme: req.colorScheme });
+      }
       if (req.url) {
         if (!(await allowUrl(req.url))) {
           throw new SessionError(

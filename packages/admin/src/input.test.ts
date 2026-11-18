@@ -98,21 +98,37 @@ describe("hydrateInviteToken", () => {
 describe("hydrateLimitOverride", () => {
   it("reads whole numbers above the defaults, minutes as milliseconds", () => {
     expect(
-      hydrateLimitOverride({ recordings: " 100 ", minutes: "15" }),
+      hydrateLimitOverride({
+        recordings: " 100 ",
+        minutes: "15",
+        agentMinutes: "60",
+      }),
     ).toEqual({
       ok: true,
-      value: { recordings: 100, maxRecordingMs: 15 * 60_000 },
+      value: {
+        recordings: 100,
+        maxRecordingMs: 15 * 60_000,
+        agentMinutes: 60,
+      },
     });
   });
 
   it("treats a blank field as the default", () => {
-    expect(hydrateLimitOverride({ recordings: "", minutes: null })).toEqual({
+    expect(
+      hydrateLimitOverride({
+        recordings: "",
+        minutes: null,
+        agentMinutes: undefined,
+      }),
+    ).toEqual({
       ok: true,
-      value: { recordings: null, maxRecordingMs: null },
+      value: { recordings: null, maxRecordingMs: null, agentMinutes: null },
     });
-    expect(hydrateLimitOverride({ recordings: "40", minutes: "" })).toEqual({
+    expect(
+      hydrateLimitOverride({ recordings: "40", minutes: "", agentMinutes: "" }),
+    ).toEqual({
       ok: true,
-      value: { recordings: 40, maxRecordingMs: null },
+      value: { recordings: 40, maxRecordingMs: null, agentMinutes: null },
     });
   });
 
@@ -126,14 +142,32 @@ describe("hydrateLimitOverride", () => {
       "lots",
       "10001",
     ]) {
-      const result = hydrateLimitOverride({ recordings, minutes: "" });
+      const result = hydrateLimitOverride({
+        recordings,
+        minutes: "",
+        agentMinutes: "",
+      });
       expect(result.ok).toBe(false);
     }
-    const minutes = hydrateLimitOverride({ recordings: "", minutes: "5" });
+    const minutes = hydrateLimitOverride({
+      recordings: "",
+      minutes: "5",
+      agentMinutes: "",
+    });
     expect(minutes).toEqual({
       ok: false,
       error:
         "Minutes must be a whole number from 6 to 180, or blank for the default.",
+    });
+    const agent = hydrateLimitOverride({
+      recordings: "",
+      minutes: "",
+      agentMinutes: "10",
+    });
+    expect(agent).toEqual({
+      ok: false,
+      error:
+        "Agent minutes must be a whole number from 11 to 10,000, or blank for the default.",
     });
   });
 });

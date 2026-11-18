@@ -30,10 +30,19 @@ export type SitePreview = {
   description: string | null;
   image: string | null;
   icon: string | null;
+  followsTheme: boolean;
 };
+
+export type DemoColorScheme = "light" | "dark";
+
+export function hydrateColorScheme(raw: unknown): DemoColorScheme {
+  return raw === "dark" ? "dark" : "light";
+}
 
 const CHECK_TIMEOUT_MS = 10_000;
 const HEAD_BYTES = 1024 * 1024;
+const STYLESHEETS_CHECKED = 3;
+const STYLESHEET_BYTES = 512 * 1024;
 const USER_AGENT = "Mozilla/5.0 (compatible; CaptureFlow swarm demo preview)";
 
 function decodeEntities(text: string): string {
@@ -77,6 +86,29 @@ const absolute = (href: string | undefined, base: string): string | null => {
   }
 };
 
+// A light and a dark theme the page picks between by the system setting.
+const THEME_QUERY = /prefers-color-scheme\s*:\s*(?:dark|light)/i;
+
+export function followsSystemTheme(text: string): boolean {
+  if (THEME_QUERY.test(text)) return true;
+  for (const m of text.matchAll(/<meta\s[^>]*>/gi)) {
+    const a = attrs(m[0]);
+    if (a.name?.toLowerCase() !== "color-scheme") continue;
+    const schemes = (a.content ?? "").toLowerCase().split(/\s+/);
+    if (schemes.includes("light") && schemes.includes("dark")) return true;
+  }
+  return false;
+}
+
+const stylesheetsIn = (html: string, base: string): string[] =>
+  [...html.matchAll(/<link\s[^>]*>/gi)]
+    .map((m) => attrs(m[0]))
+    .filter((a) =>
+      (a.rel ?? "").toLowerCase().split(/\s+/).includes("stylesheet"),
+    )
+    .map((a) => absolute(a.href, base))
+    .filter((href): href is string => href !== null);
+
 // What a link to the page would show: its title, description, social image and icon, from the head of its HTML.
 export function parseSitePreview(html: string, url: string): SitePreview {
   const meta: Record<string, string> = {};
@@ -102,16 +134,20 @@ export function parseSitePreview(html: string, url: string): SitePreview {
     description: clean(meta["og:description"] ?? meta.description, 200),
     image: absolute(meta["og:image"] ?? meta["twitter:image"], url),
     icon: absolute(touchIcon ?? icon, url) ?? `${parsed.origin}/favicon.ico`,
+    followsTheme: followsSystemTheme(html),
   };
 }
 
-async function readHead(res: Response, limit: number): Promise<string> {
+async function readUntil(
+  res: Response,
+  limit: number,
+  enough: (text: string) => boolean,
+): Promise<string> {
   const reader = res.body?.getReader();
   if (!reader) return "";
   const decoder = new TextDecoder();
   let out = "";
-  // Sites that inline their CSS push the meta tags hundreds of KB in, so read to the end of the head.
-  while (out.length < limit && !/<\/head\s*>|<body[\s>]/i.test(out)) {
+  while (out.length < limit && !enough(out)) {
     const { value, done } = await reader.read();
     if (done) break;
     out += decoder.decode(value, { stream: true });
@@ -135,6 +171,48 @@ export async function checkSite(
   } catch {
     return null;
   }
-  const html = await readHead(res, HEAD_BYTES).catch(() => "");
-  return parseSitePreview(html, res.url || url);
+  const landed = res.url || url;
+  /*
+   * Sites that inline their CSS push the meta tags hundreds of KB in, so read
+   * to the end of the head. A theme switch often sits in a script further
+   * down, so keep reading until one turns up or the limit is hit.
+   */
+  const html = await readUntil(
+    res,
+    HEAD_BYTES,
+    (text) => /<\/head\s*>|<body[\s>]/i.test(text) && followsSystemTheme(text),
+  ).catch(() => "");
+  const preview = parseSitePreview(html, landed);
+  if (preview.followsTheme) return preview;
+  return {
+    ...preview,
+    followsTheme: await stylesheetsFollowTheme(
+      stylesheetsIn(html, landed).slice(0, STYLESHEETS_CHECKED),
+      fetchImpl,
+    ),
+  };
+}
+
+async function stylesheetsFollowTheme(
+  hrefs: string[],
+  fetchImpl: typeof fetch,
+): Promise<boolean> {
+  const found = await Promise.all(
+    hrefs.map(async (href) => {
+      try {
+        const res = await fetchImpl(href, {
+          signal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
+          headers: { accept: "text/css,*/*;q=0.1", "user-agent": USER_AGENT },
+        });
+        if (!res.ok) return false;
+        const css = await readUntil(res, STYLESHEET_BYTES, (text) =>
+          THEME_QUERY.test(text),
+        );
+        return THEME_QUERY.test(css);
+      } catch {
+        return false;
+      }
+    }),
+  );
+  return found.some(Boolean);
 }

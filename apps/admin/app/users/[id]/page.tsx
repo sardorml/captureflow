@@ -26,6 +26,7 @@ import {
   getUserTimeline,
   listAuditForTarget,
   listUserSubscriptions,
+  listWorkspaceUsage,
   listUserWorkspaces,
   summarizeCapture,
   type AdminTimelineEvent,
@@ -50,10 +51,11 @@ import {
   formatRelative,
   shareUrl,
 } from "../../_ui";
-import { setUserLimitsAction } from "../../actions";
+import { resetAgentUsageAction, setUserLimitsAction } from "../../actions";
 import { Feed, type FeedItem, type Hue } from "../../_dashboard";
 import { PanelTabs } from "../../_filters";
 import { LimitsCard } from "../../_limits-card";
+import { ResetButton } from "./ResetButton";
 import { SignOutEverywhere } from "./SignOutEverywhere";
 
 const TIMELINE_ICON: Record<AdminTimelineKind, [LucideIcon, Hue]> = {
@@ -198,6 +200,7 @@ export default async function UserPage({
       getLimitOverride(env.DB, "user", id),
     ]);
   if (!user) notFound();
+  const usage = await listWorkspaceUsage(env.DB, id, workspaces, Date.now());
   const canWrite = can(operator.role, "users.write");
   const now = Date.now();
   const displayName = user.name || user.email;
@@ -438,6 +441,55 @@ export default async function UserPage({
         override={limits}
         canWrite={canWrite}
       />
+      <FormCard
+        title="Usage"
+        description="What this person has used of each limit in every workspace they belong to. Agent and voiceover minutes are shared by the workspace and start over on the 1st; resetting them never deletes recordings. To let someone record more, raise their limits."
+      >
+        {usage.length === 0 ? (
+          <p className="text-fg-muted text-sm">Not in any workspace.</p>
+        ) : (
+          <ul className="flex flex-col gap-5">
+            {usage.map((u) => (
+              <li key={u.workspaceId} className="flex flex-col gap-2.5">
+                <NextLink
+                  href={`/workspaces/${u.workspaceId}`}
+                  className="truncate text-sm font-medium hover:underline"
+                >
+                  {u.workspaceName}
+                </NextLink>
+                {u.recordings && (
+                  <UsageMeter label="Recordings" meter={u.recordings} />
+                )}
+                {u.agentMinutes && (
+                  <UsageMeter
+                    label="Agent minutes this month"
+                    meter={u.agentMinutes}
+                  />
+                )}
+                {u.voiceoverMinutes && (
+                  <UsageMeter
+                    label="Voiceover minutes this month"
+                    meter={u.voiceoverMinutes}
+                  />
+                )}
+                {canWrite && u.agentMinutes && (
+                  <ResetButton
+                    action={resetAgentUsageAction}
+                    name="workspaceId"
+                    value={u.workspaceId}
+                    label="Reset agent minutes"
+                    confirm={`Start ${u.workspaceName}'s agent recording minutes for this month over? Every member gets the full allowance back.`}
+                    disabled={
+                      u.agentMinutes.used === 0 &&
+                      (u.voiceoverMinutes?.used ?? 0) === 0
+                    }
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </FormCard>
     </div>
   );
 
@@ -537,6 +589,40 @@ export default async function UserPage({
           { id: "history", label: "History", content: historyTable },
         ]}
       />
+    </div>
+  );
+}
+
+function UsageMeter({
+  label,
+  meter,
+}: {
+  label: string;
+  meter: { used: number; limit: number };
+}) {
+  const full = meter.used >= meter.limit;
+  const used = Number.isInteger(meter.used)
+    ? meter.used
+    : Math.round(meter.used * 10) / 10;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex justify-between gap-3 text-sm">
+        <span className="text-fg-muted">{label}</span>
+        <span
+          className={`tabular-nums ${full ? "text-destructive" : "text-fg-muted"}`}
+        >
+          {used} of {meter.limit}
+          {full ? " · limit reached" : ""}
+        </span>
+      </div>
+      <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+        <div
+          className={`h-full rounded-full ${full ? "bg-destructive" : "bg-primary"}`}
+          style={{
+            width: `${Math.min(100, (meter.used / meter.limit) * 100)}%`,
+          }}
+        />
+      </div>
     </div>
   );
 }

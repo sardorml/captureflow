@@ -105,8 +105,11 @@ export {
   getLimitOverride,
   getSeatPlan,
   isSelfHosted,
+  resetAgentUsage,
   setLimitOverride,
 } from "@captureflow/quota";
+export { listWorkspaceUsage } from "./allowance";
+export type { WorkspaceUsage } from "./allowance";
 export type { LimitOverride, SeatPlanId } from "@captureflow/quota";
 export type { SubscriptionStatus } from "@captureflow/quota";
 
