@@ -294,24 +294,23 @@ const WAND_ICON = (
   </svg>
 );
 
-const BOARD_ICON = (
+// A droplet half washed out: the soft side is what the viewer can't read.
+const BLUR_ICON = (
   <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
-    <rect
-      x="3"
-      y="4"
-      width="18"
-      height="13"
-      rx="2"
+    <path
+      d="M12 3.5c3.3 3.9 6 7.3 6 10.5a6 6 0 0 1-12 0c0-3.2 2.7-6.6 6-10.5z"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
+      strokeLinejoin="round"
     />
     <path
-      d="M7 12.5c1.5-3.5 3-3.5 4.5 0s3 3.5 4.5 0M9 20.5h6"
+      d="M12 8v12M15 12.5v6M9 12.5v6"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
       strokeLinecap="round"
+      strokeDasharray="1.5 2.5"
     />
   </svg>
 );
@@ -357,6 +356,8 @@ export function FooterActions({
     closeSurface();
   };
 
+  // The service worker closes this panel, then the page enters blur mode.
+  const startBlur = () => void sendMessage("startBlur", undefined);
   // The service worker closes this panel and reopens it on the new tab.
   const openCanvas = () => void sendMessage("openCanvas", undefined);
 
@@ -366,9 +367,9 @@ export function FooterActions({
         {WAND_ICON}
         Effects
       </button>
-      <button type="button" onClick={openCanvas} className={ACTION_CLASS}>
-        {BOARD_ICON}
-        Canvas
+      <button type="button" onClick={startBlur} className={ACTION_CLASS}>
+        {BLUR_ICON}
+        Blur
       </button>
       <VisibilityAction />
       <Dropdown>
@@ -389,6 +390,9 @@ export function FooterActions({
               <span className="text-sm text-muted">
                 {RECORDING_QUALITIES[clampQuality(quality, maxQuality)].label}
               </span>
+            </Dropdown.Item>
+            <Dropdown.Item onAction={openCanvas} className={MENU_ITEM}>
+              Open canvas
             </Dropdown.Item>
             <Dropdown.Item onAction={openDashboard} className={MENU_ITEM}>
               Open dashboard

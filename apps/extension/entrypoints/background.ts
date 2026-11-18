@@ -738,6 +738,18 @@ export default defineBackground(() => {
     await openCanvasWithRecorder();
   });
 
+  onMessage("startBlur", async ({ sender }) => {
+    const tabId = sender?.tab?.id ?? overlayTabId;
+    await closeRecorderOverlay(tabId);
+    if (tabId === undefined) return;
+    await sendMessage("blurPage", undefined, tabId).catch(() => {});
+  });
+
+  onMessage("blurDone", async ({ sender }) => {
+    const tabId = sender?.tab?.id;
+    if (tabId !== undefined) await openOverlayOn(tabId, { openOnly: true });
+  });
+
   onMessage("setOverlayTheme", async ({ data, sender }) => {
     const target = sender?.tab?.id ?? overlayTabId;
     if (target === undefined) return;

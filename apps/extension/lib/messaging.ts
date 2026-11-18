@@ -62,6 +62,12 @@ type ProtocolMap = {
   closeRecorderOverlay(): void;
   // panel→SW: close this panel and reopen it on a fresh canvas tab.
   openCanvas(): void;
+  // panel→SW: close this panel and put the page in blur mode.
+  startBlur(): void;
+  // SW→page: click elements to blur them until Done.
+  blurPage(): void;
+  // page→SW: blurring started from the panel is done, so the panel reopens.
+  blurDone(): void;
   // SW→page: while the panel is open the control bar shows where it will
   // sit, disabled, so the recording's chrome is in view before it starts.
   panelPreview(on: boolean): void;
