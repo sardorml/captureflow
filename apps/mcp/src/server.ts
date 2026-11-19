@@ -80,7 +80,7 @@ When you record:
 - A plain "record this" or a quick capture: no slides.
 - Keep slides to a few seconds each and never let them outweigh the screen time. Short headline, one-sentence subtitle.
 - Plan the walkthrough before you start, move at a pace a viewer can follow, and stop as soon as it's done.
-- Narrate only when the user asks for a voice or voiceover. Then narrate every slide and every step, a sentence or two at a time, and pass voiceover: true when you start so the voice is ready.
+- Narrate every recording: every slide and every step, a sentence or two at a time. The voice runs on this computer, so it costs nothing. Skip it only when the user says "no voice", and for a swarm clip, which plays to music.
 - When the recording shows work you did (a fix, a feature, a test run), call create_report after stop_recording with a plain-text summary of what changed, what you checked and anything that failed. For code changes or a bug, pass context too: the commit, the pull request or issue, the changes and the checks. It is added to the summary.
 - Give the user the link from stop_recording.`;
 
@@ -296,12 +296,12 @@ export function createLocalServer(settings: Settings) {
           .boolean()
           .optional()
           .describe(
-            "Set when you'll narrate, so the voice loads while you set up.",
+            "False when you won't narrate. Defaults to true, so the voice loads while you set up.",
           ),
       },
       async ({ url, title, visibility, workspace_id, voiceover }) => {
         guardOne();
-        if (voiceover) warmVoice(settings.tts);
+        if (voiceover !== false) warmVoice(settings.tts);
         const out = await output("tab", title ?? new URL(url).host);
         const [browser, ffmpeg] = await Promise.all([
           launch(settings.headless),
@@ -395,12 +395,12 @@ export function createLocalServer(settings: Settings) {
           .boolean()
           .optional()
           .describe(
-            "Set when you'll narrate, so the voice loads while you set up.",
+            "False when you won't narrate. Defaults to true, so the voice loads while you set up.",
           ),
       },
       async ({ app, display, title, visibility, workspace_id, voiceover }) => {
         guardOne();
-        if (voiceover) warmVoice(settings.tts);
+        if (voiceover !== false) warmVoice(settings.tts);
         const screens = await listScreens();
         if (!screens.displays.length)
           throw new ToolError("No display found to record.");
@@ -474,7 +474,7 @@ export function createLocalServer(settings: Settings) {
       "start_presentation",
       "Make a video from slides",
       "Starts a video built from slides alone, with no page or screen behind them: a presentation, a how-to from the user's screenshots, or a walkthrough of code. " +
-        "Then call show_slide for each slide in turn, narrate over each one if asked for a voiceover or wait a few seconds on it otherwise, and stop_recording for the link. " +
+        "Then call show_slide for each slide in turn, narrate over each one, or wait a few seconds on it when there's no voice, and stop_recording for the link. " +
         "Ends on stop_recording, after 5 minutes without a call, or at 30 minutes.",
       {
         title: z.string().max(200).optional(),
@@ -484,12 +484,12 @@ export function createLocalServer(settings: Settings) {
           .boolean()
           .optional()
           .describe(
-            "Set when you'll narrate, so the voice loads while you set up.",
+            "False when you won't narrate. Defaults to true, so the voice loads while you set up.",
           ),
       },
       async ({ title, visibility, workspace_id, voiceover }) => {
         guardOne();
-        if (voiceover) warmVoice(settings.tts);
+        if (voiceover !== false) warmVoice(settings.tts);
         const out = await output("tab", title ?? "presentation");
         const [browser, ffmpeg] = await Promise.all([
           launch(true),

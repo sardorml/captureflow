@@ -118,7 +118,7 @@ Write this JSON before recording. Everything after is driven by it.
   ],
   "checks": [{ "name": "typecheck", "status": "passed", "detail": "" }],
   "notShown": ["Migration 0038 has no visible effect"],
-  "voiceover": false
+  "voiceover": true
 }
 ```
 
@@ -133,9 +133,9 @@ Write this JSON before recording. Everything after is driven by it.
   `failed`; never leave a failing check out.
 - `notShown` lists every change the video does not show, so nobody assumes
   it was covered.
-- `voiceover` is true when the user asked for a voice, or when the change
-  cannot be followed from the screen alone: behaviour with nothing to see,
-  code-only changes, or a flow of more than a few steps. `no voice` wins.
+- `voiceover` is true by default: the server on this computer narrates with
+  a local voice at no cost. It is false when the user says `no voice`, and
+  when only the hosted server is connected, unless the user asked for a voice.
 
 ## 3. Record
 
