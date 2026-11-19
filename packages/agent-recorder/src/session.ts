@@ -390,11 +390,31 @@ export async function startSession(
   }
 
   /*
-   * The page's own scripts, animations and media are stopped while a build is
-   * drawn, so it stays as scanned however long each frame takes to capture:
-   * nothing it loads late or animates moves under the cursors on a slow machine.
+   * A rebuilt site's timers, dates and animation frames run on a clock the
+   * recorder controls, installed before it loads. The build can then run the
+   * page forward one video frame at a time, so its animations play at their
+   * own speed however long each frame takes to capture.
    */
-  async function freezePage(): Promise<() => Promise<void>> {
+  let clockInstalled = false;
+  async function installClock() {
+    if (clockInstalled) return;
+    await page.clock
+      .install()
+      .then(() => (clockInstalled = true))
+      .catch(() => {});
+  }
+
+  /*
+   * The page is held still while a build is drawn, so it stays as scanned
+   * however long each frame takes to capture: nothing it loads late or
+   * animates moves under the cursors on a slow machine. On the recorder's
+   * clock, `step` plays its scripts and CSS animations forward by one frame;
+   * without that clock its scripts are stopped and it stays still.
+   */
+  async function freezePage(): Promise<{
+    thaw: () => Promise<void>;
+    step: (ms: number) => Promise<void>;
+  }> {
     // A canvas that hasn't reached the screen before scripts stop never paints.
     await page.evaluate(
       () =>
@@ -404,7 +424,16 @@ export async function startSession(
         }),
     );
     const cdp = await context.newCDPSession(page);
-    await cdp.send("Emulation.setScriptExecutionDisabled", { value: true });
+    const stepped =
+      clockInstalled &&
+      (await page
+        .evaluate(() => Date.now())
+        .then((now) => page.clock.pauseAt(now + 50))
+        .then(() => true)
+        .catch(() => false));
+    if (!stepped) {
+      await cdp.send("Emulation.setScriptExecutionDisabled", { value: true });
+    }
     await cdp.send("Animation.enable");
     await cdp.send("Animation.setPlaybackRate", { playbackRate: 0 });
     const paused = await page.evaluateHandle(() =>
@@ -416,12 +445,24 @@ export async function startSession(
       }),
     );
     let thawed = false;
-    return async () => {
+    const step = async (ms: number) => {
+      if (!stepped) return;
+      await page.clock.runFor(ms);
+      await page.evaluate((by) => {
+        for (const a of document.getAnimations()) {
+          a.currentTime = (Number(a.currentTime) || 0) + by;
+        }
+      }, ms);
+    };
+    const thaw = async () => {
       if (thawed) return;
       thawed = true;
-      await cdp
-        .send("Emulation.setScriptExecutionDisabled", { value: false })
-        .catch(() => {});
+      if (stepped) await page.clock.resume().catch(() => {});
+      else {
+        await cdp
+          .send("Emulation.setScriptExecutionDisabled", { value: false })
+          .catch(() => {});
+      }
       await cdp
         .send("Animation.setPlaybackRate", { playbackRate: 1 })
         .catch(() => {});
@@ -435,6 +476,7 @@ export async function startSession(
       await paused.dispose().catch(() => {});
       await cdp.detach().catch(() => {});
     };
+    return { thaw, step };
   }
 
   /*
@@ -445,6 +487,7 @@ export async function startSession(
     rec.live();
     const startedAt = Date.now();
     let thaw = async () => {};
+    let step = async (_ms: number) => {};
     // Getting the page ready isn't recorded, but on a slow machine it can outlast the idle stop.
     const prepared = rec.offCamera(async () => {
       // Set before the page loads, so a site that follows the system theme starts in it.
@@ -457,6 +500,7 @@ export async function startSession(
             "That address can't be opened in the recorder.",
           );
         }
+        await installClock();
         await open(req.url);
       } else if (!/^https?:/.test(page.url())) {
         throw new SessionError(
@@ -567,7 +611,7 @@ export async function startSession(
       await cursorHidden(true);
       await page.evaluate(hideConsent, CONSENT_SELECTOR);
       await page.evaluate(seekSwarm, 0);
-      thaw = await freezePage();
+      ({ thaw, step } = await freezePage());
       // The keys are heard as the prompt is typed; the music starts on send, shares the build's tempo and is gone when the build is.
       const sounds: SoundLayer[] = [];
       if (plan.prompt) {
@@ -609,7 +653,10 @@ export async function startSession(
       await rec.recorded(() =>
         animate(
           plan.durationMs,
-          (t) => page.evaluate(seekSwarm, t * plan.durationMs),
+          async (t) => {
+            await step(1000 / FPS);
+            await page.evaluate(seekSwarm, t * plan.durationMs);
+          },
           linear,
         ),
       );
