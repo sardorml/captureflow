@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
   const env = await getAppWebEnv();
   if (!env?.DB) return jsonError("db unavailable", 500);
 
-  const resolved = await resolveDeviceToken(bearer);
+  const resolved = await resolveDeviceToken(bearer, req);
   if (!resolved) {
     return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }

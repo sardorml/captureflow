@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { logAccess } from "../access-log";
 import { getCloudflareEnv } from "./cf-env";
 
 // Hashing must match the desktop app's token issuer: SHA-256 of the raw token
@@ -13,6 +14,7 @@ async function hashToken(raw: string): Promise<string> {
 
 export async function resolveDeviceTokenToUser(
   rawToken: string,
+  request?: Request,
 ): Promise<string | null> {
   if (typeof rawToken !== "string" || rawToken.length < 32) return null;
   const env = await getCloudflareEnv();
@@ -32,5 +34,12 @@ export async function resolveDeviceTokenToUser(
     .bind(row.id, Date.now())
     .run()
     .catch(() => {});
+  logAccess({
+    userId: row.user_id,
+    via: "device",
+    credentialId: row.id,
+    request,
+    fallbackRoute: "device token",
+  });
   return row.user_id;
 }

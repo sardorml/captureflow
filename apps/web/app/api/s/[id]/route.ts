@@ -47,7 +47,7 @@ async function authorise(
   let userId: string | null = null;
   const bearer = extractBearerToken(req);
   if (bearer) {
-    userId = await resolveDeviceTokenToUser(bearer);
+    userId = await resolveDeviceTokenToUser(bearer, req);
     if (!userId) {
       return {
         kind: "error",

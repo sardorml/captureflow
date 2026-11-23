@@ -507,7 +507,9 @@ function extractBearerToken(req: Request): string | null {
  */
 export async function handleMcpRequest(req: Request): Promise<Response> {
   const bearer = extractBearerToken(req);
-  const deviceUserId = bearer ? await resolveDeviceTokenToUser(bearer) : null;
+  const deviceUserId = bearer
+    ? await resolveDeviceTokenToUser(bearer, req)
+    : null;
   if (deviceUserId) return serve(req, deviceUserId);
   const auth = await getAuth();
   return withMcpAuth(auth, async (request, session) =>

@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ id: string }> };
 
 // The owner edits in the viewer with a cookie; the local MCP writes an agent's report with its device token.
-async function callerUserId(): Promise<string | null> {
-  const h = await headers();
+async function callerUserId(req: Request): Promise<string | null> {
+  const h = req.headers;
   const bearer = /^bearer\s+(.+)$/i.exec((h.get("authorization") ?? "").trim());
-  if (bearer) return resolveDeviceTokenToUser(bearer[1]!.trim());
+  if (bearer) return resolveDeviceTokenToUser(bearer[1]!.trim(), req);
   return (await verifySessionOrNull(h.get("cookie")))?.userId ?? null;
 }
 
@@ -45,7 +45,7 @@ export async function PUT(req: Request, { params }: Params) {
   if (!row || row.state !== "ready") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
-  const userId = await callerUserId();
+  const userId = await callerUserId(req);
   if (!userId || userId !== row.userId) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
