@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { logAccess } from "./access-log";
 import { getAppWebEnv } from "./cf-env";
 
 // Long-lived bearer tokens for the desktop app: the raw token is shown to the
@@ -83,6 +84,7 @@ export async function issueDeviceToken(
 // Side effect: bumps last_used_at for the dashboard's "Last seen" display.
 export async function resolveDeviceToken(
   rawToken: string,
+  request?: Request,
 ): Promise<{ userId: string; id: string } | null> {
   if (typeof rawToken !== "string" || rawToken.length < 32) return null;
   const db = await getDb();
@@ -101,6 +103,13 @@ export async function resolveDeviceToken(
     .prepare(`UPDATE device_tokens SET last_used_at = ?2 WHERE id = ?1`)
     .bind(row.id, Date.now())
     .run();
+  logAccess({
+    userId: row.user_id,
+    via: "device",
+    credentialId: row.id,
+    request,
+    fallbackRoute: "device token",
+  });
   return { userId: row.user_id, id: row.id };
 }
 

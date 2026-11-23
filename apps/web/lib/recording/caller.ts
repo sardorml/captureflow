@@ -9,7 +9,7 @@ export async function callerUserId(req: NextRequest): Promise<string | null> {
   const bearer = /^bearer\s+(.+)$/i.exec(
     req.headers.get("authorization")?.trim() ?? "",
   )?.[1];
-  if (bearer) return resolveDeviceTokenToUser(bearer);
+  if (bearer) return resolveDeviceTokenToUser(bearer, req);
   const session = await verifySessionOrNull((await headers()).get("cookie"));
   return session?.userId ?? null;
 }

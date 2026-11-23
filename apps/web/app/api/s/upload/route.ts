@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
   if (!bearer) {
     return jsonError("Sign in to upload a screenshot.", 401, "missing_token");
   }
-  const userId = await resolveDeviceTokenToUser(bearer);
+  const userId = await resolveDeviceTokenToUser(bearer, req);
   if (!userId) {
     return jsonError(
       "Sign-in expired or revoked. Sign in again to keep sharing under your account.",

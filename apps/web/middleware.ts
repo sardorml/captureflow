@@ -14,6 +14,7 @@ import {
   parseLanguageChoice,
   redirectLocale,
 } from "@/lib/i18n/preference";
+import { ACCESS_PATH_HEADER } from "@/lib/access-path";
 import { LOGIN_NEXT_HEADER } from "@/lib/login-next";
 
 export const config = {
@@ -105,17 +106,19 @@ export function middleware(req: NextRequest) {
     const next = pathname + req.nextUrl.search;
     return redirectTo(req, "/login", `?next=${encodeURIComponent(next)}`);
   }
-  const res = NextResponse.next(
-    pathname === "/login" ? { request: { headers: withLoginNext(req) } } : {},
-  );
+  const res = NextResponse.next({ request: { headers: forwarded(req) } });
   res.headers.set("cache-control", "private, no-store, must-revalidate");
   return res;
 }
 
 // The login layout sends a signed-in visitor on before any HTML is out, and
-// only the middleware can hand it the address to send them to.
-function withLoginNext(req: NextRequest): Headers {
+// only the middleware can hand it the address to send them to. The access log
+// gets the path the same way.
+function forwarded(req: NextRequest): Headers {
   const headers = new Headers(req.headers);
-  headers.set(LOGIN_NEXT_HEADER, req.nextUrl.searchParams.get("next") ?? "");
+  headers.set(ACCESS_PATH_HEADER, req.nextUrl.pathname);
+  if (req.nextUrl.pathname === "/login") {
+    headers.set(LOGIN_NEXT_HEADER, req.nextUrl.searchParams.get("next") ?? "");
+  }
   return headers;
 }

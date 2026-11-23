@@ -152,3 +152,19 @@ export type {
   WebRow,
 } from "./web-analytics";
 export { summarizeCapture, type CaptureSummary } from "./capture-summary";
+
+export {
+  ACCESS_LIMIT,
+  describeRoute,
+  explainActive,
+  getUserAccess,
+} from "./access";
+export type {
+  AdminAccessRow,
+  AdminAccessVia,
+  AdminActiveCause,
+  AdminDeviceRow,
+  AdminRouteInfo,
+  AdminSessionRow,
+  AdminUserAccess,
+} from "./access";

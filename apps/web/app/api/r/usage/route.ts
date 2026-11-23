@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   if (!bearer) {
     return jsonError("Sign in to read recording usage", 401, "missing_token");
   }
-  const userId = await resolveDeviceTokenToUser(bearer);
+  const userId = await resolveDeviceTokenToUser(bearer, req);
   if (!userId) {
     return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }

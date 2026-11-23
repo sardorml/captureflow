@@ -22,6 +22,7 @@ import {
   can,
   getAdminUser,
   getLimitOverride,
+  getUserAccess,
   getUserActivity,
   getUserTimeline,
   listAuditForTarget,
@@ -55,6 +56,7 @@ import { resetAgentUsageAction, setUserLimitsAction } from "../../actions";
 import { Feed, type FeedItem, type Hue } from "../../_dashboard";
 import { PanelTabs } from "../../_filters";
 import { LimitsCard } from "../../_limits-card";
+import { AccessPanel } from "./AccessPanel";
 import { ResetButton } from "./ResetButton";
 import { SignOutEverywhere } from "./SignOutEverywhere";
 
@@ -189,16 +191,25 @@ export default async function UserPage({
   const env = await getAdminEnv();
   if (!env?.DB) notFound();
 
-  const [user, activity, timeline, subscriptions, workspaces, audit, limits] =
-    await Promise.all([
-      getAdminUser(env.DB, id),
-      getUserActivity(env.DB, id),
-      getUserTimeline(env.DB, id),
-      listUserSubscriptions(env.DB, id),
-      listUserWorkspaces(env.DB, id),
-      listAuditForTarget(env.DB, "user", id),
-      getLimitOverride(env.DB, "user", id),
-    ]);
+  const [
+    user,
+    activity,
+    timeline,
+    subscriptions,
+    workspaces,
+    audit,
+    limits,
+    access,
+  ] = await Promise.all([
+    getAdminUser(env.DB, id),
+    getUserActivity(env.DB, id),
+    getUserTimeline(env.DB, id),
+    listUserSubscriptions(env.DB, id),
+    listUserWorkspaces(env.DB, id),
+    listAuditForTarget(env.DB, "user", id),
+    getLimitOverride(env.DB, "user", id),
+    getUserAccess(env.DB, id),
+  ]);
   if (!user) notFound();
   const usage = await listWorkspaceUsage(env.DB, id, workspaces, Date.now());
   const canWrite = can(operator.role, "users.write");
@@ -527,7 +538,26 @@ export default async function UserPage({
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {user.name && <span>{user.email}</span>}
             <span>Joined {formatRelative(user.createdAt)}</span>
-            <span>Active {formatRelative(user.lastActiveAt)}</span>
+            <span>
+              Active {formatRelative(user.lastActiveAt)}
+              {access.lastActive && (
+                <span className="text-fg-subtle">
+                  {" "}
+                  via {access.lastActive.credential}
+                  {access.lastActive.access
+                    ? access.lastActive.access.isBackground
+                      ? " (background check)"
+                      : ` (${access.lastActive.access.routeLabel.toLowerCase()})`
+                    : ""}
+                </span>
+              )}
+            </span>
+            {access.lastForeground && (
+              <span>
+                Last did something{" "}
+                {formatRelative(access.lastForeground.lastAt)}
+              </span>
+            )}
           </span>
         }
         actions={
@@ -574,6 +604,11 @@ export default async function UserPage({
         label="User details"
         items={[
           { id: "activity", label: "Activity", content: timelineFeed },
+          {
+            id: "access",
+            label: "Sessions & access",
+            content: <AccessPanel data={access} now={now} />,
+          },
           { id: "recordings", label: "Recordings", content: recentTable },
           {
             id: "workspaces",
