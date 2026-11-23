@@ -32,7 +32,10 @@ export function loadPosthog(): Promise<PostHog | null> {
       autocapture: true,
       // A dev server's hot reloads throw errors no visitor ever sees.
       capture_exceptions: process.env.NODE_ENV === "production",
-      disable_session_recording: true,
+      // Session replay: the recorder script loads lazily once PostHog's
+      // remote config says recording is on. Inputs are masked by default.
+      disable_session_recording: false,
+      session_recording: { maskAllInputs: true },
       // Each is a script of its own after the config loads.
       disable_surveys: true,
       capture_dead_clicks: false,
