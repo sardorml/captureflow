@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { ACCOUNT_LIMITS } from "@captureflow/quota";
@@ -126,6 +127,12 @@ export async function PUT(
   const updated = await updateScreenshotAfterEdit(a.screenshot.id, {
     sizeBytes: body.byteLength,
   });
+  logUserEvent({
+    userId: a.userId,
+    action: "screenshot.edit",
+    subject: a.screenshot.title,
+    detail: a.screenshot.id,
+  });
 
   return withCors(
     NextResponse.json({
@@ -144,6 +151,12 @@ export async function DELETE(
   if (a.kind === "error") return a.res;
 
   await softDeleteScreenshot(a.screenshot.id);
+  logUserEvent({
+    userId: a.userId,
+    action: "screenshot.delete",
+    subject: a.screenshot.title,
+    detail: a.screenshot.id,
+  });
   // No cron sweep for screenshots yet, so drop the R2 object inline.
   try {
     await deleteScreenshotBytes(a.screenshot.id);

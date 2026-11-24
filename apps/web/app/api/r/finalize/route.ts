@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
@@ -196,6 +197,19 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  if (row.userId) {
+    logUserEvent({
+      userId: row.userId,
+      action: "recording.upload",
+      slug: row.slug,
+      subject: row.title,
+      workspaceId: row.workspaceId,
+      detail:
+        typeof body.durationMs === "number"
+          ? `${Math.round(body.durationMs / 1000)}s`
+          : null,
+    });
+  }
   const res: FinalizeResponse = { url: viewUrlForRequest(req, row.slug) };
   return withCors(NextResponse.json(res));
 }

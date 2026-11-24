@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
@@ -26,6 +27,16 @@ export async function DELETE(
   }
 
   await removeRecording(row);
+  if (row.userId) {
+    logUserEvent({
+      userId: row.userId,
+      action: "recording.delete",
+      slug: row.slug,
+      subject: row.title,
+      workspaceId: row.workspaceId,
+      detail: "from the app",
+    });
+  }
 
   return withCors(NextResponse.json({ ok: true }));
 }

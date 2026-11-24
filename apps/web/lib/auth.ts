@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { logUserEvent } from "@/lib/user-events";
 import { cache } from "react";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
@@ -141,6 +142,9 @@ function buildAuth(
             const refusal = await env?.SELFHOST?.signinRefusal(session.userId);
             if (refusal) throw new APIError("FORBIDDEN", { message: refusal });
           },
+          after: async (session) => {
+            logUserEvent({ userId: session.userId, action: "account.sign_in" });
+          },
         },
       },
       user: {
@@ -162,6 +166,7 @@ function buildAuth(
           after: async (user) => {
             if (!env?.DB) return;
             const db = env.DB;
+            logUserEvent({ userId: user.id, action: "account.sign_up" });
             try {
               await env.SELFHOST?.afterSignup(user.id);
             } catch (err) {

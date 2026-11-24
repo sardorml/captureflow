@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { deleteComment, getComment, getRecording } from "@/lib/recording/db";
@@ -31,5 +32,10 @@ export async function DELETE(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   await deleteComment(id);
+  logUserEvent({
+    userId: session.userId,
+    action: "comment.delete",
+    slug: comment.slug,
+  });
   return NextResponse.json({ ok: true });
 }

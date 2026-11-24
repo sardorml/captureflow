@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { getRecording, updateRecording } from "@/lib/recording/db";
@@ -59,5 +60,6 @@ export async function PUT(req: Request, { params }: Params) {
   await updateRecording(row.slug, {
     summaryChaptersJson: JSON.stringify(normalized),
   });
+  logUserEvent({ userId, action: "recording.chapters_edit", slug: row.slug });
   return NextResponse.json(normalized);
 }

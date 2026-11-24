@@ -1,5 +1,6 @@
 "use server";
 
+import { logUserEvent } from "@/lib/user-events";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -96,6 +97,7 @@ export async function renameRecordingAction(
   if (!ok) {
     return { error: t.recordingNotFound, slug };
   }
+  logUserEvent({ userId, action: "recording.rename", slug, subject: next });
   revalidatePath("/");
   revalidatePath(`/r/${slug}`);
   return { error: null, slug };
@@ -122,6 +124,12 @@ export async function setVisibilityAction(
     visibility,
   );
   if (!ok) return { error: t.recordingNotFound };
+  logUserEvent({
+    userId,
+    action: "recording.visibility",
+    slug: cleanSlug,
+    detail: visibility,
+  });
   revalidatePath("/");
   return { error: null };
 }
@@ -159,6 +167,13 @@ export async function deleteRecordingAction(slug: string): Promise<{
   ]);
   await purgeCachedMedia(row);
   await deleteRecordingForAdmin(userId, cleanSlug);
+  logUserEvent({
+    userId,
+    action: "recording.delete",
+    slug: cleanSlug,
+    subject: row.title,
+    workspaceId: row.workspaceId,
+  });
   revalidatePath("/");
   return { error: null };
 }
@@ -190,6 +205,7 @@ export async function saveRecordingConfigAction(
   if (previous && next && previous !== next) {
     await deleteObject(recordingBackgroundImageKey(previous)).catch(() => {});
   }
+  logUserEvent({ userId, action: "recording.edit", slug: cleanSlug });
   revalidatePath(`/recordings/${cleanSlug}/edit`);
   revalidatePath("/");
   return { error: null };
@@ -241,6 +257,7 @@ export async function uploadRecordingBackgroundAction(
     console.error("[background] upload failed", err);
     return fail(t.backgroundFailed);
   }
+  logUserEvent({ userId, action: "recording.background", slug });
   return {
     error: null,
     background: `image:${name}`,
@@ -287,6 +304,7 @@ export async function saveTranscriptEditsAction(
     JSON.stringify(edited),
   );
   if (!ok) return { error: t.transcriptNotFound, transcript: null };
+  logUserEvent({ userId, action: "recording.transcript_edit", slug });
   revalidatePath(`/recordings/${slug}/edit`);
   return { error: null, transcript: edited };
 }
@@ -301,6 +319,7 @@ export async function resetTranscriptEditsAction(
   if (!auto) return { error: t.transcriptNotFound, transcript: null };
   const ok = await updateTranscriptEditsForUser(userId, slug, null);
   if (!ok) return { error: t.transcriptNotFound, transcript: null };
+  logUserEvent({ userId, action: "recording.transcript_reset", slug });
   revalidatePath(`/recordings/${slug}/edit`);
   return { error: null, transcript: auto };
 }
@@ -314,6 +333,7 @@ export async function revokeDeviceTokenAction(tokenId: string): Promise<{
   if (!cleanId) return { error: t.missingTokenId };
   const ok = await revokeDeviceToken(userId, cleanId);
   if (!ok) return { error: t.tokenNotFound };
+  logUserEvent({ userId, action: "device.revoke", detail: cleanId });
   revalidatePath("/");
   return { error: null };
 }
@@ -329,6 +349,12 @@ export async function deleteScreenshotAction(screenshotId: string): Promise<{
   if (!screenshot) return { error: t.screenshotNotFound };
   const ok = await softDeleteScreenshotForAdmin(cleanId, userId);
   if (!ok) return { error: t.screenshotNotFound };
+  logUserEvent({
+    userId,
+    action: "screenshot.delete",
+    subject: screenshot.title,
+    detail: cleanId,
+  });
   // Best-effort R2 cleanup; row is already soft-deleted and the retention
   // cron sweeps any stranded bytes.
   await Promise.allSettled(
@@ -361,6 +387,12 @@ export async function setScreenshotVisibilityAction(
     visibility,
   );
   if (!ok) return { error: t.screenshotNotFound };
+  logUserEvent({
+    userId,
+    action: "screenshot.visibility",
+    subject: visibility,
+    detail: cleanId,
+  });
   revalidatePath("/screenshots");
   return { error: null };
 }
@@ -376,6 +408,12 @@ export async function renameScreenshotAction(
   const trimmed = typeof title === "string" ? title.trim().slice(0, 200) : "";
   const ok = await renameScreenshot(cleanId, userId, trimmed || null);
   if (!ok) return { error: t.screenshotNotFound };
+  logUserEvent({
+    userId,
+    action: "screenshot.rename",
+    subject: trimmed || null,
+    detail: cleanId,
+  });
   revalidatePath("/screenshots");
   revalidatePath(`/screenshots/${cleanId}/edit`);
   return { error: null };
@@ -502,6 +540,12 @@ async function saveScreenshotActionInner(
     return { error: t.invalidCanvasDimensions };
   }
   await updateScreenshotAfterEdit(cleanId, userId, byteLength, w, h);
+  logUserEvent({
+    userId,
+    action: "screenshot.edit",
+    subject: screenshot.title,
+    detail: cleanId,
+  });
   revalidatePath(`/screenshots/${cleanId}/edit`);
   revalidatePath("/screenshots");
   return { error: null };

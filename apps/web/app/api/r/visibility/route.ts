@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
@@ -40,5 +41,13 @@ export async function POST(req: NextRequest) {
   }
 
   await updateRecording(slug, { visibility: value as RecordingVisibility });
+  if (row.userId) {
+    logUserEvent({
+      userId: row.userId,
+      action: "recording.visibility",
+      slug,
+      detail: value,
+    });
+  }
   return withCors(NextResponse.json({ visibility: value }));
 }

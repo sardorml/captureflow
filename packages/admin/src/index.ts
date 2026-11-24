@@ -151,6 +151,19 @@ export type {
   WebRange,
   WebRow,
 } from "./web-analytics";
+export {
+  describeEvent,
+  getUserProductActivity,
+  groupSessions,
+  pageLabel,
+  summarizeActivity,
+} from "./user-activity";
+export type {
+  ActivityKind,
+  ActivitySession,
+  ActivityStep,
+  UserProductActivity,
+} from "./user-activity";
 export { summarizeCapture, type CaptureSummary } from "./capture-summary";
 
 export {
