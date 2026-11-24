@@ -1,5 +1,6 @@
 "use server";
 
+import { logUserEvent } from "@/lib/user-events";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -88,6 +89,7 @@ export async function uploadUserAvatarAction(
     .bind(url, userId)
     .run();
 
+  logUserEvent({ userId, action: "account.avatar_upload" });
   revalidatePath("/", "layout");
   return { error: null, ok: "Avatar updated" };
 }
@@ -110,6 +112,7 @@ export async function removeUserAvatarAction(): Promise<void> {
   await env.DB.prepare(`UPDATE users SET image = NULL WHERE id = ?1`)
     .bind(userId)
     .run();
+  logUserEvent({ userId, action: "account.avatar_remove" });
   revalidatePath("/", "layout");
 }
 

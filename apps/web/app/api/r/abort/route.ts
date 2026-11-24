@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
@@ -40,6 +41,15 @@ export async function POST(req: NextRequest) {
   // A cancelled or discarded upload leaves nothing worth keeping, so the row
   // goes with its objects instead of lingering as "failed" on the dashboard.
   await removeRecording(row);
+  if (row.userId) {
+    logUserEvent({
+      userId: row.userId,
+      action: "recording.discard",
+      slug: row.slug,
+      subject: row.title,
+      workspaceId: row.workspaceId,
+    });
+  }
 
   return withCors(NextResponse.json({ ok: true }));
 }

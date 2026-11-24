@@ -1,5 +1,6 @@
 "use server";
 
+import { logUserEvent } from "@/lib/user-events";
 import { revalidatePath } from "next/cache";
 import {
   getWorkspaceById,
@@ -34,7 +35,7 @@ export async function updateWorkspaceNameAction(
   const { messages: m } = await getAppI18n();
   const owned = await requireOwnerWorkspace();
   if (!owned) return { error: m.settings.errors.ownerOnly, ok: null };
-  const { workspaceId } = owned;
+  const { userId, workspaceId } = owned;
   const env = await getAppWebEnv();
   if (!env?.DB)
     return { error: m.settings.errors.databaseUnavailable, ok: null };
@@ -47,6 +48,12 @@ export async function updateWorkspaceNameAction(
 
   const ok = await updateWorkspaceName(env.DB, workspaceId, name.name);
   if (!ok) return { error: m.settings.errors.saveFailed, ok: null };
+  logUserEvent({
+    userId,
+    action: "workspace.rename",
+    workspaceId,
+    subject: name.name,
+  });
   revalidatePath("/", "layout");
   return { error: null, ok: "Saved" };
 }
@@ -92,6 +99,11 @@ export async function uploadWorkspaceLogoAction(
 
   const ok = await updateWorkspaceLogo(env.DB, workspaceId, key);
   if (!ok) return { error: m.settings.errors.saveFailed, ok: null };
+  logUserEvent({
+    userId: owned.userId,
+    action: "workspace.logo_upload",
+    workspaceId: owned.workspaceId,
+  });
   revalidatePath("/", "layout");
   return { error: null, ok: "Logo updated" };
 }
@@ -107,6 +119,11 @@ export async function removeWorkspaceLogoAction(): Promise<void> {
     void deleteObject(existing.logo_key).catch(() => {});
   }
   await updateWorkspaceLogo(env.DB, workspaceId, null);
+  logUserEvent({
+    userId: owned.userId,
+    action: "workspace.logo_remove",
+    workspaceId,
+  });
   revalidatePath("/", "layout");
 }
 
@@ -121,6 +138,12 @@ export async function setMemberUploadsPolicyAction(
   const value = formData.get("allow_member_uploads");
   await updateWorkspacePolicy(env.DB, workspaceId, {
     allowMemberUploads: value === "1",
+  });
+  logUserEvent({
+    userId: owned.userId,
+    action: "workspace.uploads_policy",
+    workspaceId,
+    detail: value === "1" ? "on" : "off",
   });
   revalidatePath("/settings/workspace");
 }

@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { logUserEvent } from "../user-events";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
@@ -231,7 +232,16 @@ export function createServer(
       annotations: ANNOTATIONS.removesAccess,
     },
     ({ id, visibility }) =>
-      run(() => setRecordingVisibility(user, id, visibility)),
+      run(async () => {
+        const result = await setRecordingVisibility(user, id, visibility);
+        logUserEvent({
+          userId: user.userId,
+          action: "recording.visibility",
+          slug: id,
+          detail: `${visibility} (via agent)`,
+        });
+        return result;
+      }),
   );
 
   const act = (recording_id: string, action: RecorderAction) =>
@@ -467,7 +477,15 @@ export function createServer(
       annotations: ANNOTATIONS.discardsRecording,
     },
     ({ recording_id }) =>
-      run(() => cancelAgentRecording(db, env, user, recording_id)),
+      run(async () => {
+        const result = await cancelAgentRecording(db, env, user, recording_id);
+        logUserEvent({
+          userId: user.userId,
+          action: "recording.discard",
+          detail: "agent recording cancelled",
+        });
+        return result;
+      }),
   );
 
   return server;

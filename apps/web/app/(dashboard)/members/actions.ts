@@ -1,5 +1,6 @@
 "use server";
 
+import { logUserEvent } from "@/lib/user-events";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { hydrateAssignableRole } from "@captureflow/quota";
@@ -70,6 +71,12 @@ export async function inviteMemberAction(
     alreadyMemberError: copy.alreadyMember,
   });
   if (!result.ok) return { error: result.error, ok: null };
+  logUserEvent({
+    userId: access.userId,
+    action: "member.invite",
+    workspaceId: access.workspace.id,
+    subject: email,
+  });
 
   revalidatePath("/members");
   if (!result.emailSent) {
@@ -87,6 +94,12 @@ export async function revokeInviteAction(formData: FormData): Promise<void> {
     inviteId,
     workspaceId: access.workspace.id,
   });
+  logUserEvent({
+    userId: access.userId,
+    action: "member.invite_revoke",
+    workspaceId: access.workspace.id,
+    detail: inviteId,
+  });
   revalidatePath("/members");
 }
 
@@ -100,6 +113,12 @@ export async function removeMemberAction(formData: FormData): Promise<void> {
     userId,
     actorUserId: access.userId,
   });
+  logUserEvent({
+    userId: access.userId,
+    action: "member.remove",
+    workspaceId: access.workspace.id,
+    detail: userId,
+  });
   revalidatePath("/members");
 }
 
@@ -110,11 +129,19 @@ export async function changeMemberRoleAction(
   if (!access.ok) return;
   const userId = text(formData.get("userId"));
   if (!userId || userId === access.userId) return;
+  const role = hydrateAssignableRole(formData.get("role"));
   await changeMemberRole(access.db, {
     workspaceId: access.workspace.id,
     userId,
-    role: hydrateAssignableRole(formData.get("role")),
+    role,
     actorUserId: access.userId,
+  });
+  logUserEvent({
+    userId: access.userId,
+    action: "member.role_change",
+    workspaceId: access.workspace.id,
+    subject: role,
+    detail: userId,
   });
   // The upgrade dialog in the top bar and sidebar shows the seats too.
   revalidatePath("/", "layout");
@@ -140,6 +167,11 @@ export async function requestPaidSeatAction(): Promise<{
     baseUrl: await getAppBaseUrl(),
   });
   if (!result.ok) return { ok: false, error: result.error };
+  logUserEvent({
+    userId: access.userId,
+    action: "member.seat_request",
+    workspaceId: access.workspace.id,
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -154,6 +186,12 @@ export async function denySeatRequestAction(formData: FormData): Promise<void> {
     userId,
     actorUserId: access.userId,
   });
+  logUserEvent({
+    userId: access.userId,
+    action: "member.seat_deny",
+    workspaceId: access.workspace.id,
+    detail: userId,
+  });
   revalidatePath("/members");
 }
 
@@ -163,6 +201,11 @@ export async function leaveWorkspaceAction(): Promise<void> {
   await leaveWorkspace(access.db, {
     workspaceId: access.workspace.id,
     userId: access.userId,
+  });
+  logUserEvent({
+    userId: access.userId,
+    action: "workspace.leave",
+    workspaceId: access.workspace.id,
   });
   revalidatePath("/", "layout");
   redirect("/recordings");
@@ -185,6 +228,7 @@ export async function acceptInviteAction(formData: FormData): Promise<void> {
     baseUrl: await getAppBaseUrl(),
   });
   if (!result.ok) redirect(`/recordings?invite=${result.reason}`);
+  logUserEvent({ userId: session.user.id, action: "invite.accept" });
 
   revalidatePath("/", "layout");
   redirect("/members?invite=accepted");

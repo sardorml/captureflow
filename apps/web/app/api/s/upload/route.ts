@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextRequest, NextResponse } from "next/server";
 import { ACCOUNT_LIMITS } from "@captureflow/quota";
 import { generateScreenshotId } from "@/lib/screenshot/id";
@@ -249,6 +250,13 @@ export async function POST(req: NextRequest) {
     return jsonError("Failed to record screenshot", 500, "db_insert_failed");
   }
 
+  logUserEvent({
+    userId,
+    action: "screenshot.create",
+    subject: title,
+    workspaceId,
+    detail: id,
+  });
   const res: UploadResponse = {
     id,
     viewUrl: screenshotViewUrlForRequest(req, id),

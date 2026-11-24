@@ -1,5 +1,6 @@
 "use server";
 
+import { logUserEvent } from "@/lib/user-events";
 import { revalidatePath } from "next/cache";
 import { isSeatPlanId } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
@@ -22,6 +23,12 @@ export async function switchPlanAction(
     { workspaceId: access.workspace.id, plan },
   );
   if (!result.ok) return { ok: false, error: errors[result.reason] };
+  logUserEvent({
+    userId: access.userId,
+    action: "workspace.plan_switch",
+    workspaceId: access.workspace.id,
+    detail: plan,
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }

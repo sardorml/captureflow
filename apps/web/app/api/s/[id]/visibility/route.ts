@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { getScreenshot, updateScreenshotVisibility } from "@/lib/screenshot/db";
@@ -60,5 +61,11 @@ export async function POST(
   }
 
   await updateScreenshotVisibility(id, value);
+  logUserEvent({
+    userId: visitor.userId,
+    action: "screenshot.visibility",
+    subject: value,
+    detail: id,
+  });
   return withCors(NextResponse.json({ ok: true, visibility: value }));
 }

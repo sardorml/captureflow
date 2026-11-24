@@ -70,7 +70,11 @@ export default async function DashboardLayout({
             </div>
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <PostHogIdentify email={session.user.email} />
+            <PostHogIdentify
+              email={session.user.email}
+              name={session.user.name}
+              userId={session.user.id}
+            />
             <div data-split="page" className="mx-auto max-w-[1184px] p-8">
               {children}
             </div>

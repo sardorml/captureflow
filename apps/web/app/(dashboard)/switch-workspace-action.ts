@@ -1,5 +1,6 @@
 "use server";
 
+import { logUserEvent } from "@/lib/user-events";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -36,6 +37,11 @@ export async function switchWorkspaceAction(formData: FormData): Promise<void> {
   // app carry a device token and no cookies, so a browser-only preference left
   // them writing to the personal workspace whatever the switcher said.
   await setCurrentWorkspaceId(env.DB, session.user.id, workspaceId);
+  logUserEvent({
+    userId: session.user.id,
+    action: "workspace.switch",
+    workspaceId,
+  });
 
   revalidatePath("/recordings");
   revalidatePath("/screenshots");

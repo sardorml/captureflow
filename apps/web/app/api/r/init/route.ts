@@ -1,3 +1,4 @@
+import { logUserEvent } from "@/lib/user-events";
 import { NextRequest, NextResponse } from "next/server";
 import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
 import { initRecording, parseInitRequest } from "@/lib/recording/init";
@@ -55,5 +56,6 @@ export async function POST(req: NextRequest) {
   if (result.kind === "error") {
     return jsonError(result.error, result.status, result.code);
   }
+  logUserEvent({ userId, action: "recording.create", detail: deviceId });
   return withCors(NextResponse.json(result.response));
 }

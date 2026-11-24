@@ -1,5 +1,6 @@
 "use server";
 
+import { logUserEvent } from "@/lib/user-events";
 import { revalidatePath } from "next/cache";
 import { declineInvite, markNotificationsRead } from "@captureflow/quota";
 import { getAppBaseUrl } from "@/lib/app-base-url";
@@ -43,6 +44,11 @@ export async function acceptInviteFromFeedAction(
   });
   if (!result.ok)
     return { ok: false, error: copy[ACCEPT_ERRORS[result.reason]] };
+  logUserEvent({
+    userId: auth.user.id,
+    action: "invite.accept",
+    detail: inviteId,
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -53,5 +59,10 @@ export async function declineInviteFromFeedAction(
   const auth = await signedIn();
   if (!auth || typeof inviteId !== "string" || !inviteId) return;
   await declineInvite(auth.db, { inviteId, email: auth.user.email });
+  logUserEvent({
+    userId: auth.user.id,
+    action: "invite.decline",
+    detail: inviteId,
+  });
   revalidatePath("/", "layout");
 }
