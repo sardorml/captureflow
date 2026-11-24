@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import NextLink from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -29,6 +30,7 @@ import {
   listUserSubscriptions,
   listWorkspaceUsage,
   listUserWorkspaces,
+  postHogConfig,
   summarizeCapture,
   type AdminTimelineEvent,
   type AdminTimelineKind,
@@ -57,6 +59,7 @@ import { Feed, type FeedItem, type Hue } from "../../_dashboard";
 import { PanelTabs } from "../../_filters";
 import { LimitsCard } from "../../_limits-card";
 import { AccessPanel } from "./AccessPanel";
+import { ProductActivity } from "./ProductActivity";
 import { ResetButton } from "./ResetButton";
 import { SignOutEverywhere } from "./SignOutEverywhere";
 
@@ -603,6 +606,24 @@ export default async function UserPage({
       <PanelTabs
         label="User details"
         items={[
+          {
+            id: "product",
+            label: "What they did",
+            content: (
+              <Suspense
+                fallback={
+                  <p className="text-fg-muted text-sm">
+                    Loading activity from PostHog…
+                  </p>
+                }
+              >
+                <ProductActivity
+                  config={postHogConfig(env)}
+                  email={user.email}
+                />
+              </Suspense>
+            ),
+          },
           { id: "activity", label: "Activity", content: timelineFeed },
           {
             id: "access",
